@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hidden layer space warp</title>
+<style>
+:root{--bg:#fff;--fg:#1f1f1e;--mut:#6b6a66;--card:#f4f3ee;--line:#d9d7cf}
+@media (prefers-color-scheme:dark){:root{--bg:#1f1f1e;--fg:#f1efe8;--mut:#a8a69e;--card:#2c2c2a;--line:#444441}}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-size:18px;font-weight:500;margin:0 0 12px}
+.pn{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pn p{font-size:13px;color:var(--mut);margin:0 0 4px}
+canvas{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px}
+.row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.row label{font-size:13px;color:var(--mut);width:92px}
+.row input{flex:1}
+.row span{font-size:13px;font-weight:500;width:40px;text-align:right}
+.m{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.m div{background:var(--card);border-radius:8px;padding:10px 12px}
+.m small{display:block;font-size:12px;color:var(--mut)}
+.m b{font-size:17px;font-weight:500}
+.lg{font-size:12px;color:var(--mut);margin-top:10px}
+@media (max-width:520px){.pn{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Hidden layer space warp</h1>
+<div class="pn">
+  <div><p>Original plane (x1, x2)</p><canvas id="a" width="640" height="520"></canvas></div>
+  <div><p>Hidden plane (h1, h2)</p><canvas id="b" width="640" height="520"></canvas></div>
+</div>
+<div class="row"><label>x1 (length)</label><input type="range" id="x1" min="4" max="8" step="0.05" value="6"><span id="x1o">6</span></div>
+<div class="row"><label>x2 (width)</label><input type="range" id="x2" min="2" max="4.5" step="0.05" value="4"><span id="x2o">4</span></div>
+<div class="m">
+  <div><small>h1</small><b id="h1o">0</b></div>
+  <div><small>h2</small><b id="h2o">0</b></div>
+  <div><small>output y</small><b id="yo">0</b></div>
+</div>
+<p class="lg">Pink line: neuron 1 boundary. Yellow line: neuron 2 boundary. Orange dot: the same flower in both planes.</p>
+</div>
+<script>
+const sg=z=>1/(1+Math.exp(-z));
+const f=(x1,x2)=>{const h1=sg(-7*x1-5*x2+60),h2=sg(4*x1-5*x2-5);return [h1,h2,sg(7*h1+7*h2-5)]};
+const col=t=>{const s=[[68,1,84],[33,145,140],[253,231,37]];const u=Math.min(Math.max(t,0),1)*2,i=Math.min(Math.floor(u),1),r=u-i;return s[i].map((c,k)=>Math.round(c+(s[i+1][k]-c)*r))};
+const X0=4,X1=8,Y0=2,Y1=4.5;
+function heat(cv,fn){const W=160,H=130,o=document.createElement('canvas');o.width=W;o.height=H;const c=o.getContext('2d'),im=c.createImageData(W,H);
+for(let j=0;j<H;j++)for(let i=0;i<W;i++){const v=fn(i/(W-1),1-j/(H-1)),k=(j*W+i)*4,r=col(v);im.data[k]=r[0];im.data[k+1]=r[1];im.data[k+2]=r[2];im.data[k+3]=255}
+c.putImageData(im,0,0);const g=cv.getContext('2d');g.imageSmoothingEnabled=true;g.drawImage(o,0,0,cv.width,cv.height)}
+const A=document.getElementById('a'),B=document.getElementById('b');
+const bgA=document.createElement('canvas'),bgB=document.createElement('canvas');
+[bgA,bgB].forEach(c=>{c.width=640;c.height=520});
+heat(bgA,(u,v)=>f(X0+u*(X1-X0),Y0+v*(Y1-Y0))[2]);
+heat(bgB,(u,v)=>sg(7*u+7*v-5));
+const px=(x,y,x0,x1,y0,y1)=>[(x-x0)/(x1-x0)*640,(1-(y-y0)/(y1-y0))*520];
+function line(g,p,q,clr){g.strokeStyle=clr;g.lineWidth=3;g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke()}
+function dot(g,p){g.fillStyle='#fff';g.beginPath();g.arc(p[0],p[1],13,0,7);g.fill();g.fillStyle='#D85A30';g.beginPath();g.arc(p[0],p[1],8,0,7);g.fill()}
+function draw(){
+const x1=+document.getElementById('x1').value,x2=+document.getElementById('x2').value,[h1,h2,y]=f(x1,x2);
+let g=A.getContext('2d');g.drawImage(bgA,0,0);
+const l1=x=>(60-7*x)/5,l2=x=>(4*x-5)/5;
+line(g,px(4,l1(4),X0,X1,Y0,Y1),px(8,l1(8),X0,X1,Y0,Y1),'#F7C1C1');
+line(g,px(4,l2(4),X0,X1,Y0,Y1),px(8,l2(8),X0,X1,Y0,Y1),'#FAC775');
+dot(g,px(x1,x2,X0,X1,Y0,Y1));
+g=B.getContext('2d');g.drawImage(bgB,0,0);
+line(g,px(0,5/7,0,1,0,1),px(5/7,0,0,1,0,1),'#F7C1C1');
+dot(g,px(h1,h2,0,1,0,1));
+document.getElementById('x1o').textContent=x1.toFixed(2);
+document.getElementById('x2o').textContent=x2.toFixed(2);
+document.getElementById('h1o').textContent=h1.toFixed(2);
+document.getElementById('h2o').textContent=h2.toFixed(2);
+document.getElementById('yo').textContent=y.toFixed(2);
+}
+document.getElementById('x1').oninput=draw;document.getElementById('x2').oninput=draw;draw();
+</script>
+</body>
+</html>
