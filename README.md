@@ -1,5 +1,8 @@
 # Hidden layer space warp — 은닉층이 공간을 뒤트는 걸 눈으로 보기
 
+[![Live demo](https://img.shields.io/badge/demo-open%20in%20browser-2ea44f?style=flat-square)](https://chaninjung.github.io/xor-hidden-layer/)
+[![GitHub Pages](https://img.shields.io/badge/hosted%20on-GitHub%20Pages-222?style=flat-square&logo=github)](https://chaninjung.github.io/xor-hidden-layer/)
+
 XOR을 공부하다가 "은닉층이 왜 필요한가"가 잘 안 와닿아서 만든 인터랙티브 시각화입니다.
 외부 라이브러리 없이 **HTML + CSS + JavaScript 한 파일**(`index.html`)로만 동작합니다.
 
